@@ -66,8 +66,6 @@ void apply_IR_commands() {
           robot_stop();
           break;
       }
-      left_gain = constrain(left_gain, -255, 255);
-      right_gain = constrain(right_gain, -255, 255);
       break;
     case MOVE_DECREASE_SPEED:
       switch (robot_direction) {
@@ -88,8 +86,6 @@ void apply_IR_commands() {
           robot_stop();
           break;
       }
-      left_gain = constrain(left_gain, -255, 255);
-      right_gain = constrain(right_gain, -255, 255);
       break;
   }
   _ctrl_sig = IR_UNDEFINED;

@@ -41,7 +41,9 @@ motor_direction_t _right_direction = DIR_FORWARD;
 int ticks_to_mm(int tick) {
   return (int)(tick * 1.175);
 }
-#define DEFAULT_SPEED 150
+#define DEFAULT_SPEED         150
+#define REVERSE_SPEED_LIMIT  -255
+#define FORWARD_SPEED_LIMIT   255
 
 void encoder_left() {
   enc_left_int = digitalRead(HALL_LEFT_INT);
@@ -74,10 +76,10 @@ void setup_PID() {
   motor_ctrl_stop();
   pid_left.SetMode(AUTOMATIC);
   pid_left.SetSampleTime(1);
-  pid_left.SetOutputLimits(-255, 255);
+  pid_left.SetOutputLimits(REVERSE_SPEED_LIMIT, FORWARD_SPEED_LIMIT);
   pid_right.SetMode(AUTOMATIC);
   pid_right.SetSampleTime(1);
-  pid_right.SetOutputLimits(-255, 255);
+  pid_right.SetOutputLimits(REVERSE_SPEED_LIMIT, FORWARD_SPEED_LIMIT);
   encoder_left_tick = 0;
   encoder_right_tick = 0;
   temp_left = 0;
