@@ -22,7 +22,7 @@
 
 // Results returned from the decoder
 class decode_results {
-public:
+ public:
   int decode_type; // NEC, SONY, RC5, UNKNOWN
   unsigned long value; // Decoded value
   int bits; // Number of bits in decoded value
@@ -41,23 +41,30 @@ public:
 #define REPEAT 0xffffffff
 
 // main class for receiving IR
-class IRrecv
-{
-public:
+class IRrecv {
+ public:
   IRrecv(int recvpin);
+
   void blink13(int blinkflag);
+
   int decode(decode_results *results);
+
   void enableIRIn();
+
   void resume();
-private:
+
+ private:
   // These are called by decode
   int getRClevel(decode_results *results, int *offset, int *used, int t1);
+
   long decodeNEC(decode_results *results);
+
   long decodeSony(decode_results *results);
+
   long decodeRC5(decode_results *results);
+
   long decodeRC6(decode_results *results);
-} 
-;
+};
 
 // Only used for testing; can remove virtual for shorter code
 #ifdef TEST
@@ -66,21 +73,27 @@ private:
 #define VIRTUAL
 #endif
 
-class IRsend
-{
-public:
+class IRsend {
+ public:
   IRsend() {}
+
   void sendNEC(unsigned long data, int nbits);
+
   void sendSony(unsigned long data, int nbits);
+
   void sendRaw(unsigned int buf[], int len, int hz);
+
   void sendRC5(unsigned long data, int nbits);
+
   void sendRC6(unsigned long data, int nbits);
+
   // private:
   void enableIROut(int khz);
+
   VIRTUAL void mark(int usec);
+
   VIRTUAL void space(int usec);
-}
-;
+};
 
 // Some useful constants
 

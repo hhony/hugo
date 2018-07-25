@@ -60,8 +60,7 @@ int MATCH_SPACE(int measured_ticks, int desired_us) {
 }
 #endif
 
-void IRsend::sendNEC(unsigned long data, int nbits)
-{
+void IRsend::sendNEC(unsigned long data, int nbits) {
   enableIROut(38);
   mark(NEC_HDR_MARK);
   space(NEC_HDR_SPACE);
@@ -69,8 +68,7 @@ void IRsend::sendNEC(unsigned long data, int nbits)
     if (data & TOPBIT) {
       mark(NEC_BIT_MARK);
       space(NEC_ONE_SPACE);
-    } 
-    else {
+    } else {
       mark(NEC_BIT_MARK);
       space(NEC_ZERO_SPACE);
     }
@@ -89,8 +87,7 @@ void IRsend::sendSony(unsigned long data, int nbits) {
     if (data & TOPBIT) {
       mark(SONY_ONE_MARK);
       space(SONY_HDR_SPACE);
-    } 
-    else {
+    } else {
       mark(SONY_ZERO_MARK);
       space(SONY_HDR_SPACE);
     }
@@ -98,14 +95,12 @@ void IRsend::sendSony(unsigned long data, int nbits) {
   }
 }
 
-void IRsend::sendRaw(unsigned int buf[], int len, int hz)
-{
+void IRsend::sendRaw(unsigned int buf[], int len, int hz) {
   enableIROut(hz);
   for (int i = 0; i < len; i++) {
     if (i & 1) {
       space(buf[i]);
-    } 
-    else {
+    } else {
       mark(buf[i]);
     }
   }
@@ -113,8 +108,7 @@ void IRsend::sendRaw(unsigned int buf[], int len, int hz)
 }
 
 // Note: first bit must be a one (start bit)
-void IRsend::sendRC5(unsigned long data, int nbits)
-{
+void IRsend::sendRC5(unsigned long data, int nbits) {
   enableIROut(36);
   data = data << (32 - nbits);
   mark(RC5_T1); // First start bit
@@ -124,8 +118,7 @@ void IRsend::sendRC5(unsigned long data, int nbits)
     if (data & TOPBIT) {
       space(RC5_T1); // 1 is space, then mark
       mark(RC5_T1);
-    } 
-    else {
+    } else {
       mark(RC5_T1);
       space(RC5_T1);
     }
@@ -135,8 +128,7 @@ void IRsend::sendRC5(unsigned long data, int nbits)
 }
 
 // Caller needs to take care of flipping the toggle bit
-void IRsend::sendRC6(unsigned long data, int nbits)
-{
+void IRsend::sendRC6(unsigned long data, int nbits) {
   enableIROut(36);
   data = data << (32 - nbits);
   mark(RC6_HDR_MARK);
@@ -148,15 +140,13 @@ void IRsend::sendRC6(unsigned long data, int nbits)
     if (i == 3) {
       // double-wide trailer bit
       t = 2 * RC6_T1;
-    } 
-    else {
+    } else {
       t = RC6_T1;
     }
     if (data & TOPBIT) {
       mark(t);
       space(t);
-    } 
-    else {
+    } else {
       space(t);
       mark(t);
     }
@@ -193,13 +183,13 @@ void IRsend::enableIROut(int khz) {
   // A few hours staring at the ATmega documentation and this will all make sense.
   // See my Secrets of Arduino PWM at http://arcfn.com/2009/07/secrets-of-arduino-pwm.html for details.
 
-  
+
   // Disable the Timer2 Interrupt (which is used for receiving IR)
   TIMSK2 &= ~_BV(TOIE2); //Timer2 Overflow Interrupt
-  
+
   pinMode(3, OUTPUT);
   digitalWrite(3, LOW); // When not sending PWM, we want it low
-  
+
   // COM2A = 00: disconnect OC2A
   // COM2B = 00: disconnect OC2B; to send signal set to 10: OC2B non-inverted
   // WGM2 = 101: phase-correct PWM with OCRA as top
@@ -212,8 +202,7 @@ void IRsend::enableIROut(int khz) {
   OCR2B = OCR2A / 3; // 33% duty cycle
 }
 
-IRrecv::IRrecv(int recvpin)
-{
+IRrecv::IRrecv(int recvpin) {
   irparams.recvpin = recvpin;
   irparams.blinkflag = 0;
 }
@@ -226,12 +215,12 @@ void IRrecv::enableIRIn() {
   //Prescale /8 (16M/8 = 0.5 microseconds per tick)
   // Therefore, the timer interval can range from 0.5 to 128 microseconds
   // depending on the reset value (255 to 0)
-  cbi(TCCR2B,CS22);
-  sbi(TCCR2B,CS21);
-  cbi(TCCR2B,CS20);
+  cbi(TCCR2B, CS22);
+  sbi(TCCR2B, CS21);
+  cbi(TCCR2B, CS20);
 
   //Timer2 Overflow Interrupt Enable
-  sbi(TIMSK2,TOIE2);
+  sbi(TIMSK2, TOIE2);
 
   RESET_TIMER2;
 
@@ -247,8 +236,7 @@ void IRrecv::enableIRIn() {
 }
 
 // enable/disable blinking of pin 13 on IR processing
-void IRrecv::blink13(int blinkflag)
-{
+void IRrecv::blink13(int blinkflag) {
   irparams.blinkflag = blinkflag;
   if (blinkflag)
     pinMode(BLINKLED, OUTPUT);
@@ -262,77 +250,73 @@ void IRrecv::blink13(int blinkflag)
 // As soon as a SPACE gets long, ready is set, state switches to IDLE, timing of SPACE continues.
 // As soon as first MARK arrives, gap width is recorded, ready is cleared, and new logging starts
 ISR(TIMER2_OVF_vect)
-{
-  RESET_TIMER2;
+    {
+        RESET_TIMER2;
 
-  uint8_t irdata = (uint8_t)digitalRead(irparams.recvpin);
+    uint8_t irdata = (uint8_t)digitalRead(irparams.recvpin);
 
-  irparams.timer++; // One more 50us tick
-  if (irparams.rawlen >= RAWBUF) {
-    // Buffer overflow
-    irparams.rcvstate = STATE_STOP;
-  }
-  switch(irparams.rcvstate) {
-  case STATE_IDLE: // In the middle of a gap
-    if (irdata == MARK) {
-      if (irparams.timer < GAP_TICKS) {
-        // Not big enough to be a gap.
-        irparams.timer = 0;
-      } 
-      else {
-        // gap just ended, record duration and start recording transmission
-        irparams.rawlen = 0;
-        irparams.rawbuf[irparams.rawlen++] = irparams.timer;
-        irparams.timer = 0;
-        irparams.rcvstate = STATE_MARK;
+    irparams.timer++; // One more 50us tick
+    if (irparams.rawlen >= RAWBUF) {
+      // Buffer overflow
+      irparams.rcvstate = STATE_STOP;
+    }
+    switch (irparams.rcvstate) {
+      case STATE_IDLE: // In the middle of a gap
+        if (irdata == MARK) {
+          if (irparams.timer < GAP_TICKS) {
+            // Not big enough to be a gap.
+            irparams.timer = 0;
+          } else {
+            // gap just ended, record duration and start recording transmission
+            irparams.rawlen = 0;
+            irparams.rawbuf[irparams.rawlen++] = irparams.timer;
+            irparams.timer = 0;
+            irparams.rcvstate = STATE_MARK;
+          }
+        }
+      break;
+      case STATE_MARK: // timing MARK
+        if (irdata == SPACE) {   // MARK ended, record time
+          irparams.rawbuf[irparams.rawlen++] = irparams.timer;
+          irparams.timer = 0;
+          irparams.rcvstate = STATE_SPACE;
+        }
+      break;
+      case STATE_SPACE: // timing SPACE
+        if (irdata == MARK) { // SPACE just ended, record it
+          irparams.rawbuf[irparams.rawlen++] = irparams.timer;
+          irparams.timer = 0;
+          irparams.rcvstate = STATE_MARK;
+        } else { // SPACE
+          if (irparams.timer > GAP_TICKS) {
+            // big SPACE, indicates gap between codes
+            // Mark current code as ready for processing
+            // Switch to STOP
+            // Don't reset timer; keep counting space width
+            irparams.rcvstate = STATE_STOP;
+          }
+        }
+      break;
+      case STATE_STOP: // waiting, measuring gap
+        if (irdata == MARK) { // reset gap timer
+          irparams.timer = 0;
+        }
+      break;
+    }
+
+    if (irparams.blinkflag) {
+      if (irdata == MARK) {
+        PORTB |= B00100000;  // turn pin 13 LED on
+      } else {
+        PORTB &= B11011111;  // turn pin 13 LED off
       }
     }
-    break;
-  case STATE_MARK: // timing MARK
-    if (irdata == SPACE) {   // MARK ended, record time
-      irparams.rawbuf[irparams.rawlen++] = irparams.timer;
-      irparams.timer = 0;
-      irparams.rcvstate = STATE_SPACE;
     }
-    break;
-  case STATE_SPACE: // timing SPACE
-    if (irdata == MARK) { // SPACE just ended, record it
-      irparams.rawbuf[irparams.rawlen++] = irparams.timer;
-      irparams.timer = 0;
-      irparams.rcvstate = STATE_MARK;
-    } 
-    else { // SPACE
-      if (irparams.timer > GAP_TICKS) {
-        // big SPACE, indicates gap between codes
-        // Mark current code as ready for processing
-        // Switch to STOP
-        // Don't reset timer; keep counting space width
-        irparams.rcvstate = STATE_STOP;
-      } 
-    }
-    break;
-  case STATE_STOP: // waiting, measuring gap
-    if (irdata == MARK) { // reset gap timer
-      irparams.timer = 0;
-    }
-    break;
-  }
-
-  if (irparams.blinkflag) {
-    if (irdata == MARK) {
-      PORTB |= B00100000;  // turn pin 13 LED on
-    } 
-    else {
-      PORTB &= B11011111;  // turn pin 13 LED off
-    }
-  }
-}
 
 void IRrecv::resume() {
   irparams.rcvstate = STATE_IDLE;
   irparams.rawlen = 0;
 }
-
 
 
 // Decodes the received IR message
@@ -358,13 +342,13 @@ int IRrecv::decode(decode_results *results) {
   }
 #ifdef DEBUG
   Serial.println("Attempting RC5 decode");
-#endif  
+#endif
   if (decodeRC5(results)) {
     return DECODED;
   }
 #ifdef DEBUG
   Serial.println("Attempting RC6 decode");
-#endif 
+#endif
   if (decodeRC6(results)) {
     return DECODED;
   }
@@ -390,8 +374,8 @@ long IRrecv::decodeNEC(decode_results *results) {
   offset++;
   // Check for repeat
   if (irparams.rawlen == 4 &&
-    MATCH_SPACE(results->rawbuf[offset], NEC_RPT_SPACE) &&
-    MATCH_MARK(results->rawbuf[offset+1], NEC_BIT_MARK)) {
+      MATCH_SPACE(results->rawbuf[offset], NEC_RPT_SPACE) &&
+      MATCH_MARK(results->rawbuf[offset + 1], NEC_BIT_MARK)) {
     results->bits = 0;
     results->value = REPEAT;
     results->decode_type = NEC;
@@ -412,11 +396,9 @@ long IRrecv::decodeNEC(decode_results *results) {
     offset++;
     if (MATCH_SPACE(results->rawbuf[offset], NEC_ONE_SPACE)) {
       data = (data << 1) | 1;
-    } 
-    else if (MATCH_SPACE(results->rawbuf[offset], NEC_ZERO_SPACE)) {
+    } else if (MATCH_SPACE(results->rawbuf[offset], NEC_ZERO_SPACE)) {
       data <<= 1;
-    } 
-    else {
+    } else {
       return ERR;
     }
     offset++;
@@ -447,11 +429,9 @@ long IRrecv::decodeSony(decode_results *results) {
     offset++;
     if (MATCH_MARK(results->rawbuf[offset], SONY_ONE_MARK)) {
       data = (data << 1) | 1;
-    } 
-    else if (MATCH_MARK(results->rawbuf[offset], SONY_ZERO_MARK)) {
+    } else if (MATCH_MARK(results->rawbuf[offset], SONY_ZERO_MARK)) {
       data <<= 1;
-    } 
-    else {
+    } else {
       return ERR;
     }
     offset++;
@@ -482,19 +462,16 @@ int IRrecv::getRClevel(decode_results *results, int *offset, int *used, int t1) 
   }
   int width = results->rawbuf[*offset];
   int val = ((*offset) % 2) ? MARK : SPACE;
-  int correction = (val == MARK) ? MARK_EXCESS : - MARK_EXCESS;
+  int correction = (val == MARK) ? MARK_EXCESS : -MARK_EXCESS;
 
   int avail;
   if (MATCH(width, t1 + correction)) {
     avail = 1;
-  } 
-  else if (MATCH(width, 2*t1 + correction)) {
+  } else if (MATCH(width, 2 * t1 + correction)) {
     avail = 2;
-  } 
-  else if (MATCH(width, 3*t1 + correction)) {
+  } else if (MATCH(width, 3 * t1 + correction)) {
     avail = 3;
-  } 
-  else {
+  } else {
     return -1;
   }
 
@@ -511,7 +488,7 @@ int IRrecv::getRClevel(decode_results *results, int *offset, int *used, int t1) 
     Serial.println("SPACE");
   }
 #endif
-  return val;   
+  return val;
 }
 
 long IRrecv::decodeRC5(decode_results *results) {
@@ -527,19 +504,17 @@ long IRrecv::decodeRC5(decode_results *results) {
   if (getRClevel(results, &offset, &used, RC5_T1) != MARK) return ERR;
   int nbits;
   for (nbits = 0; offset < irparams.rawlen; nbits++) {
-    int levelA = getRClevel(results, &offset, &used, RC5_T1); 
+    int levelA = getRClevel(results, &offset, &used, RC5_T1);
     int levelB = getRClevel(results, &offset, &used, RC5_T1);
     if (levelA == SPACE && levelB == MARK) {
       // 1 bit
       data = (data << 1) | 1;
-    } 
-    else if (levelA == MARK && levelB == SPACE) {
+    } else if (levelA == MARK && levelB == SPACE) {
       // zero bit
       data <<= 1;
-    } 
-    else {
+    } else {
       return ERR;
-    } 
+    }
   }
 
   // Success
@@ -571,27 +546,25 @@ long IRrecv::decodeRC6(decode_results *results) {
   int nbits;
   for (nbits = 0; offset < results->rawlen; nbits++) {
     int levelA, levelB; // Next two levels
-    levelA = getRClevel(results, &offset, &used, RC6_T1); 
+    levelA = getRClevel(results, &offset, &used, RC6_T1);
     if (nbits == 3) {
       // T bit is double wide; make sure second half matches
       if (levelA != getRClevel(results, &offset, &used, RC6_T1)) return ERR;
-    } 
+    }
     levelB = getRClevel(results, &offset, &used, RC6_T1);
     if (nbits == 3) {
       // T bit is double wide; make sure second half matches
       if (levelB != getRClevel(results, &offset, &used, RC6_T1)) return ERR;
-    } 
+    }
     if (levelA == MARK && levelB == SPACE) { // reversed compared to RC5
       // 1 bit
       data = (data << 1) | 1;
-    } 
-    else if (levelA == SPACE && levelB == MARK) {
+    } else if (levelA == SPACE && levelB == MARK) {
       // zero bit
       data <<= 1;
-    } 
-    else {
+    } else {
       return ERR; // Error
-    } 
+    }
   }
   // Success
   results->bits = nbits;
