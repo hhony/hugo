@@ -9,9 +9,9 @@
 #define IR_CMD_RIGHT      0x00FF5AA5  // IR controller ( ▶ ) button
 #define IR_CMD_LEFT       0x00FF10EF  // IR controller ( ◀ ) button
 #define IR_CMD_STOP_PID   0x00FF38C7  // IR controller ( OK ) button
-#define IR_CMD_START_PID  0x00FFB04F  // IR controller ( # ) button
-#define IR_CMD_SERVO      0x00FF6897  // IR controller ( * ) button
-#define IR_CMD_BEEP       0x00FF9867  // IR controller ( 0 ) button
+#define IR_CMD_INC_PID    0x00FFB04F  // IR controller ( # ) button
+#define IR_CMD_DEC_PID    0x00FF6897  // IR controller ( * ) button
+#define IR_CMD_SERVO      0x00FF9867  // IR controller ( 0 ) button
 
 enum control_signal_t {
   MOVE_FWD,   // forward movement
@@ -20,11 +20,12 @@ enum control_signal_t {
   MOVE_BACK,  // backward movement
   MOVE_SERVO, // move servo
   MOVE_STOP_PID,  // kill pid
-  TEST_START_PID, // set pid to running
-  UNDEFINED
+  MOVE_INCREASE_SPEED, // increase pid speed
+  MOVE_DECREASE_SPEED, // decrease pid speed
+  IR_UNDEFINED
 };
 
-control_signal_t _ctrl_sig = UNDEFINED;
+control_signal_t _ctrl_sig = IR_UNDEFINED;
 
 // IR Receiver object
 IRrecv IR( IRPIN );
@@ -51,8 +52,10 @@ void update_IR_status() {
       _ctrl_sig = MOVE_BACK;
     } else if (IRresults.value == IR_CMD_SERVO) {
       _ctrl_sig = MOVE_SERVO;
-    } else if (IRresults.value == IR_CMD_START_PID) {
-      _ctrl_sig = TEST_START_PID;
+    } else if (IRresults.value == IR_CMD_INC_PID) {
+      _ctrl_sig = MOVE_INCREASE_SPEED;
+    } else if (IRresults.value == IR_CMD_DEC_PID) {
+      _ctrl_sig = MOVE_DECREASE_SPEED;
     } else if (IRresults.value == IR_CMD_STOP_PID) {
       _ctrl_sig = MOVE_STOP_PID;
     }

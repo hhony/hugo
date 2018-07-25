@@ -4,6 +4,16 @@
 #include "PID_v1.h"
 #include "motor_control.h"
 
+enum robot_direction_t {
+  ROBOT_FORWARD,
+  ROBOT_BACKWARD,
+  ROBOT_LEFT,
+  ROBOT_RIGHT,
+  ROBOT_STOP
+};
+
+robot_direction_t robot_direction = ROBOT_STOP;
+
 enum motor_direction_t {
   DIR_FORWARD,
   DIR_BACKWARD
@@ -100,18 +110,24 @@ void run_PID_controller(int left_gain, int right_gain) {
   if (left_gain == 0 && right_gain == 0){
     motor_ctrl_stop();
     set_motor_speed(DEFAULT_SPEED, DEFAULT_SPEED);
+    robot_direction = ROBOT_STOP;
   } else {
     set_motor_speed((uint8_t) abs(output_left), (uint8_t) abs(output_right));
     if (output_left < 0 && output_right < 0) {
       motor_ctrl_back(0);
+      robot_direction = ROBOT_BACKWARD;
     } else if (output_left > 0 && output_right > 0) {
       motor_ctrl_forward(0);
+      robot_direction = ROBOT_FORWARD;
     } else if (output_left > 0 && output_right < 0) {
       motor_ctrl_right(0);
+      robot_direction = ROBOT_RIGHT;
     } else if (output_left < 0 && output_right > 0) {
       motor_ctrl_left(0);
+      robot_direction = ROBOT_LEFT;
     } else {
       motor_ctrl_stop();
+      robot_direction = ROBOT_STOP;
     }
   }
 }

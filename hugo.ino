@@ -14,6 +14,12 @@ void setup() {
 }
 
 
+void robot_stop() {
+  left_gain = 0;
+  right_gain = 0;
+  run_PID_controller(left_gain, right_gain);
+}
+
 //
 // apply IR remote control
 //
@@ -36,19 +42,57 @@ void apply_IR_commands() {
       right_gain = -24;
       break;
     case MOVE_STOP_PID:
-      left_gain = 0;
-      right_gain = 0;
-      run_PID_controller(left_gain, right_gain);
+      robot_stop();
       break;
     case MOVE_SERVO:
       move_ultrasonic_servo(3);
       break;
-    case TEST_START_PID:
-      left_gain = 100;
-      right_gain = 100;
+    case MOVE_INCREASE_SPEED:
+      switch (robot_direction) {
+        case ROBOT_FORWARD:
+        case ROBOT_BACKWARD:
+          left_gain += 24;
+          right_gain += 24;
+          break;
+        case ROBOT_LEFT:
+          left_gain -=8;
+          right_gain += 16;
+          break;
+        case ROBOT_RIGHT:
+          left_gain +=16;
+          right_gain -= 8;
+          break;
+        case ROBOT_STOP:
+          robot_stop();
+          break;
+      }
+      left_gain = constrain(left_gain, -255, 255);
+      right_gain = constrain(right_gain, -255, 255);
+      break;
+    case MOVE_DECREASE_SPEED:
+      switch (robot_direction) {
+        case ROBOT_FORWARD:
+        case ROBOT_BACKWARD:
+          left_gain -= 24;
+          right_gain -= 24;
+          break;
+        case ROBOT_LEFT:
+          left_gain +=8;
+          right_gain -= 16;
+          break;
+        case ROBOT_RIGHT:
+          left_gain -=16;
+          right_gain += 8;
+          break;
+        case ROBOT_STOP:
+          robot_stop();
+          break;
+      }
+      left_gain = constrain(left_gain, -255, 255);
+      right_gain = constrain(right_gain, -255, 255);
       break;
   }
-  _ctrl_sig = UNDEFINED;
+  _ctrl_sig = IR_UNDEFINED;
 }
 
 
