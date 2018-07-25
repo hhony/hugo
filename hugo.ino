@@ -1,6 +1,6 @@
 #include "ir_control.h"
-#include "pid_controller.h"
-#include "servo_control.h"
+#include "pid_controller.hpp"
+#include "servo_control.hpp"
 
 int left_gain = 0;
 int right_gain = 0;
