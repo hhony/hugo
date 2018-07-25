@@ -1,6 +1,7 @@
 #include "ir_control.h"
-#include "pid_controller.h"
+#include "pid_controller.hpp"
 #include "servo_control.h"
+#include "ultrasonic.h"
 
 int left_gain = 0;
 int right_gain = 0;
@@ -20,20 +21,20 @@ void setup() {
 void apply_IR_commands() {
   switch (_ctrl_sig) {
     case MOVE_FWD:
-      left_gain = 128;
-      right_gain = 128;
+      left_gain = 24;
+      right_gain = 24;
       break;
     case MOVE_LEFT:
-      left_gain = -64;
-      right_gain = 128;
+      left_gain = -8;
+      right_gain = 16;
       break;
     case MOVE_RIGHT:
-      left_gain = 128;
-      right_gain = -64;
+      left_gain = 16;
+      right_gain = -8;
       break;
     case MOVE_BACK:
-      left_gain = -128;
-      right_gain = -128;
+      left_gain = -24;
+      right_gain = -24;
       break;
     case MOVE_STOP_PID:
       left_gain = 0;
