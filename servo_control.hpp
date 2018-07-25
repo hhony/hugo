@@ -5,7 +5,7 @@
 
 Servo _head;
 
-int angle_offset = 11;
+int angle_offset = 14;
 
 void move_ultrasonic_servo(int _speed, int _limit=180) {
   int i;
