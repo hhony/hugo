@@ -1,7 +1,6 @@
 #include "ir_control.h"
-#include "pid_controller.hpp"
+#include "pid_controller.h"
 #include "servo_control.h"
-#include "ultrasonic.h"
 
 int left_gain = 0;
 int right_gain = 0;
@@ -11,7 +10,7 @@ void setup() {
   setup_PID();
   setup_ir_control();
   setup_servo();
-  Serial.begin(115200);
+  //Serial.begin(115200);
 }
 
 
@@ -56,7 +55,6 @@ void apply_IR_commands() {
 void loop() {
   update_IR_status();
   apply_IR_commands();
-//  Serial.println(ultrasonic_measure());
   if (left_gain || right_gain) {
     run_PID_controller(left_gain, right_gain);
   }
