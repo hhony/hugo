@@ -4,14 +4,24 @@
 #include "motor_control.h"
 #include "IRremote.h"
 
-#define IR_CMD_FWD        0x00FF18E7  // IR controller ( ▲ ) button
-#define IR_CMD_BACK       0x00FF4AB5  // IR controller ( ▼ ) button
-#define IR_CMD_RIGHT      0x00FF5AA5  // IR controller ( ▶ ) button
-#define IR_CMD_LEFT       0x00FF10EF  // IR controller ( ◀ ) button
-#define IR_CMD_STOP_PID   0x00FF38C7  // IR controller ( OK ) button
-#define IR_CMD_INC_PID    0x00FFB04F  // IR controller ( # ) button
-#define IR_CMD_DEC_PID    0x00FF6897  // IR controller ( * ) button
-#define IR_CMD_SERVO      0x00FF9867  // IR controller ( 0 ) button
+#define IR_CMD_UP_ARROW     0x00FF18E7  // IR controller ( ▲ ) button
+#define IR_CMD_DOWN_ARROW   0x00FF4AB5  // IR controller ( ▼ ) button
+#define IR_CMD_RIGHT_ARROW  0x00FF5AA5  // IR controller ( ▶ ) button
+#define IR_CMD_LEFT_ARROW   0x00FF10EF  // IR controller ( ◀ ) button
+#define IR_CMD_OK           0x00FF38C7  // IR controller ( OK ) button
+#define IR_CMD_HASH         0x00FFB04F  // IR controller ( # ) button
+#define IR_CMD_STAR         0x00FF6897  // IR controller ( * ) button
+#define IR_CMD_ZERO         0x00FF9867  // IR controller ( 0 ) button
+#define IR_CMD_ONE          0x00FFA25D  // IR controller ( 1 ) button
+#define IR_CMD_TWO          0x00FF629D  // IR controller ( 2 ) button
+#define IR_CMD_THREE        0x00FFE21D  // IR controller ( 3 ) button
+#define IR_CMD_FOUR         0x00FF22DD  // IR controller ( 4 ) button
+#define IR_CMD_FIVE         0x00FF02FD  // IR controller ( 5 ) button
+#define IR_CMD_SIX          0x00FFC23D  // IR controller ( 6 ) button
+#define IR_CMD_SEVEN        0x00FFE01F  // IR controller ( 7 ) button
+#define IR_CMD_EIGHT        0x00FFA857  // IR controller ( 8 ) button
+#define IR_CMD_NINE         0x00FF906F  // IR controller ( 9 ) button
+
 
 enum control_signal_t {
   MOVE_FWD,   // forward movement
@@ -42,22 +52,52 @@ void setup_ir_control() {
 //
 void update_IR_status() {
   if (IR.decode(&IRresults)) {
-    if (IRresults.value == IR_CMD_FWD) {
-      _ctrl_sig = MOVE_FWD;
-    } else if (IRresults.value == IR_CMD_RIGHT) {
-      _ctrl_sig = MOVE_RIGHT;
-    } else if (IRresults.value == IR_CMD_LEFT) {
-      _ctrl_sig = MOVE_LEFT;
-    } else if (IRresults.value == IR_CMD_BACK) {
-      _ctrl_sig = MOVE_BACK;
-    } else if (IRresults.value == IR_CMD_SERVO) {
-      _ctrl_sig = MOVE_SERVO;
-    } else if (IRresults.value == IR_CMD_INC_PID) {
-      _ctrl_sig = MOVE_INCREASE_SPEED;
-    } else if (IRresults.value == IR_CMD_DEC_PID) {
-      _ctrl_sig = MOVE_DECREASE_SPEED;
-    } else if (IRresults.value == IR_CMD_STOP_PID) {
-      _ctrl_sig = MOVE_STOP_PID;
+    switch (IRresults.value) {
+
+      case IR_CMD_UP_ARROW:
+        _ctrl_sig = MOVE_FWD;
+        break;
+
+      case IR_CMD_RIGHT_ARROW:
+        _ctrl_sig = MOVE_RIGHT;
+        break;
+
+      case IR_CMD_LEFT_ARROW:
+        _ctrl_sig = MOVE_LEFT;
+        break;
+
+      case IR_CMD_DOWN_ARROW:
+        _ctrl_sig = MOVE_BACK;
+        break;
+
+      case IR_CMD_HASH:
+        _ctrl_sig = MOVE_INCREASE_SPEED;
+        break;
+
+      case IR_CMD_STAR:
+        _ctrl_sig = MOVE_DECREASE_SPEED;
+        break;
+
+      case IR_CMD_OK:
+        _ctrl_sig = MOVE_STOP_PID;
+        break;
+
+      case IR_CMD_ZERO:
+        _ctrl_sig = MOVE_SERVO;
+        break;
+
+      case IR_CMD_ONE:
+      case IR_CMD_TWO:
+      case IR_CMD_THREE:
+      case IR_CMD_FOUR:
+      case IR_CMD_FIVE:
+      case IR_CMD_SIX:
+      case IR_CMD_SEVEN:
+      case IR_CMD_EIGHT:
+      case IR_CMD_NINE:
+      default:
+        _ctrl_sig = IR_UNDEFINED;
+        break;
     }
     IRresults.value = 0;
     IR.resume();
