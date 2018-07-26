@@ -1,9 +1,6 @@
 #include "ir_control.h"
-#include "pid_controller.hpp"
+#include "robot_state.hpp"
 #include "servo_control.hpp"
-
-int left_gain = 0;
-int right_gain = 0;
 
 void setup() {
   setup_pinmodes();
@@ -13,12 +10,9 @@ void setup() {
   //Serial.begin(115200);
 }
 
-
-void robot_stop() {
-  left_gain = 0;
-  right_gain = 0;
-  run_PID_controller(left_gain, right_gain);
-}
+#define LINEAR_SPEED  18
+#define ARC_SPEED     16
+#define PIVOT_SPEED   8
 
 //
 // apply IR remote control
@@ -26,20 +20,20 @@ void robot_stop() {
 void apply_IR_commands() {
   switch (_ctrl_sig) {
     case MOVE_FWD:
-      left_gain = 24;
-      right_gain = 24;
+      left_gain = LINEAR_SPEED;
+      right_gain = LINEAR_SPEED;
       break;
     case MOVE_LEFT:
-      left_gain = -8;
-      right_gain = 16;
+      left_gain = -PIVOT_SPEED;
+      right_gain = ARC_SPEED;
       break;
     case MOVE_RIGHT:
-      left_gain = 16;
-      right_gain = -8;
+      left_gain = ARC_SPEED;
+      right_gain = -PIVOT_SPEED;
       break;
     case MOVE_BACK:
-      left_gain = -24;
-      right_gain = -24;
+      left_gain = -LINEAR_SPEED;
+      right_gain = -LINEAR_SPEED;
       break;
     case MOVE_STOP_PID:
       robot_stop();
@@ -50,17 +44,24 @@ void apply_IR_commands() {
     case MOVE_INCREASE_SPEED:
       switch (robot_direction) {
         case ROBOT_FORWARD:
+          left_gain += LINEAR_SPEED;
+          right_gain += LINEAR_SPEED;
+          left_gain = constrain(left_gain, 1, 255);
+          right_gain = constrain(right_gain, 1, 255);
+          break;
         case ROBOT_BACKWARD:
-          left_gain += 24;
-          right_gain += 24;
+          left_gain -= LINEAR_SPEED;
+          right_gain -= LINEAR_SPEED;
+          left_gain = constrain(left_gain, -255, -1);
+          right_gain = constrain(right_gain, -255, -1);
           break;
         case ROBOT_LEFT:
-          left_gain -=8;
-          right_gain += 16;
+          left_gain -= PIVOT_SPEED;
+          right_gain += ARC_SPEED;
           break;
         case ROBOT_RIGHT:
-          left_gain +=16;
-          right_gain -= 8;
+          left_gain += ARC_SPEED;
+          right_gain -= PIVOT_SPEED;
           break;
         case ROBOT_STOP:
           robot_stop();
@@ -70,17 +71,24 @@ void apply_IR_commands() {
     case MOVE_DECREASE_SPEED:
       switch (robot_direction) {
         case ROBOT_FORWARD:
+          left_gain -= LINEAR_SPEED;
+          right_gain -= LINEAR_SPEED;
+          left_gain = constrain(left_gain, 1, 255);
+          right_gain = constrain(right_gain, 1, 255);
+          break;
         case ROBOT_BACKWARD:
-          left_gain -= 24;
-          right_gain -= 24;
+          left_gain += LINEAR_SPEED;
+          right_gain += LINEAR_SPEED;
+          left_gain = constrain(left_gain, -255, -1);
+          right_gain = constrain(right_gain, -255, -1);
           break;
         case ROBOT_LEFT:
-          left_gain +=8;
-          right_gain -= 16;
+          left_gain += PIVOT_SPEED;
+          right_gain -= ARC_SPEED;
           break;
         case ROBOT_RIGHT:
-          left_gain -=16;
-          right_gain += 8;
+          left_gain -= ARC_SPEED;
+          right_gain += PIVOT_SPEED;
           break;
         case ROBOT_STOP:
           robot_stop();
