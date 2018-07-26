@@ -17,7 +17,7 @@
 #define ULTRASONIC_TRIG   A2  // Ultrasonic Trigger pin
 
 
-void setup_pinmodes() {
+static void setup_pinmodes() {
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
