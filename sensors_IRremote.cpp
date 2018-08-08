@@ -9,9 +9,8 @@
  * Also influenced by http://zovirl.com/2008/11/12/building-a-universal-remote-with-an-arduino/
  */
 
-#include "IRremote.h"
-#include "IRremoteInt.h"
-
+#include "sensors_IRremote.h"
+#include "sensors_IRremoteInt.h"
 // Provides ISR
 #include <avr/interrupt.h>
 

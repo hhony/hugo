@@ -1,4 +1,6 @@
-#include "pid_controller.hpp"
+#pragma once
+
+#include "robot_control.h"
 #include "sensors_ultrasonic.hpp"
 
 enum robot_state_t {
@@ -23,16 +25,6 @@ robot_state_t next_state = ROBOT_STATE_IDLE;
 robot_action_t robot_action = ROBOT_ACTION_STOP;
 robot_action_t next_action = ROBOT_ACTION_STOP;
 
-
-static int left_gain = 0;
-static int right_gain = 0;
-
-
-void robot_stop() {
-  left_gain = 0;
-  right_gain = 0;
-  run_PID_controller(left_gain, right_gain);
-}
 
 void process_robot_state() {
   if (robot_state == ROBOT_STATE_IDLE) {

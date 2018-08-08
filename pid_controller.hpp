@@ -3,6 +3,7 @@
 #include "pinmap.h"
 #include "PID_v1.h"
 #include "motor_control.h"
+#include "robot_control.h"
 
 enum robot_direction_t {
   ROBOT_FORWARD,
@@ -132,4 +133,14 @@ void run_PID_controller(int left_gain, int right_gain) {
       robot_direction = ROBOT_STOP;
     }
   }
+}
+
+void robot_stop(void) {
+  left_gain = 0;
+  right_gain = 0;
+  run_PID_controller(left_gain, right_gain);
+}
+
+void robot_move(int left_gain, int right_gain){
+  run_PID_controller(left_gain, right_gain);
 }
