@@ -2,7 +2,7 @@
 
 #include "pinmap.h"
 #include "robot_control.h"
-#include "sensors_IRremote.h"
+#include "libIRremote.h"
 #include "servo_control.hpp"
 
 #define IR_CMD_UP_ARROW     0x00FF18E7  // IR controller ( ▲ ) button
