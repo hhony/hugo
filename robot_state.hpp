@@ -1,7 +1,7 @@
 #pragma once
 
-#include <string.h>
 #include "sensors_ultrasonic.hpp"
+#include "servo_control.hpp"
 
 enum robot_state_t {
   ROBOT_STATE_IDLE,
@@ -16,7 +16,8 @@ enum robot_action_t {
   ROBOT_ACTION_STOP,
   ROBOT_ACTION_MOVE_FORWARD,
   ROBOT_ACTION_MOVE_BACKWARD,
-  ROBOT_ACTION_MOVE_RIGHT_TURN
+  ROBOT_ACTION_MOVE_RIGHT_TURN,
+  ROBOT_ACTION_MOVE_LEFT_TURN
 };
 
 robot_state_t robot_state = ROBOT_STATE_MANUAL_CONTROL;
@@ -75,14 +76,60 @@ void debug_robot_state() {
 
 
 #define MAX_DISTANCE_AWARE  800
-#define MAX_DISTANCE_SLOWS  600
-#define MAX_DISTANCE_AVOID  300
-#define MAX_DISTANCE_CLEAR  400
+#define MAX_DISTANCE_SLOWS  650
+#define MAX_DISTANCE_AVOID  215
+#define MAX_DISTANCE_CLEAR  420
+#define MAX_DISTANCE_TURNS  650
 
 #define ROBOT_SPEED_FAST    24
 #define ROBOT_SPEED_HIGH    16
 #define ROBOT_SPEED_MID     12
 #define ROBOT_SPEED_SLOW    8
+
+
+int us_adjust_angle = 90;
+int us_adjust_count = 0;
+int us_adjust_wait = 1000;
+int us_adjust_tick = 8;
+int us_last_direction = 0;
+
+bool follow_right_clear() {
+  bool ret = false;
+  if (us_adjust_count++ > us_adjust_wait) {
+    us_adjust_count = 0;
+    if (us_adjust_angle < 120) {
+      us_adjust_angle += us_adjust_tick;
+    } else {
+      us_adjust_angle = 90;
+      ret = true;
+    }
+    command_ultrasonic_angle(us_adjust_angle);
+  }
+  return ret;
+}
+
+bool follow_left_clear() {
+  bool ret = false;
+  if (us_adjust_count++ > us_adjust_wait) {
+    us_adjust_count = 0;
+    if (us_adjust_angle > 60) {
+      us_adjust_angle -= us_adjust_tick;
+    } else {
+      us_adjust_angle = 90;
+      ret = true;
+    }
+    command_ultrasonic_angle(us_adjust_angle);
+  }
+  return ret;
+}
+
+robot_action_t get_turn_direction() {
+  static int last_turn = 0;
+  if (last_turn++ % 2) {
+    return ROBOT_ACTION_MOVE_RIGHT_TURN;
+  }
+  return ROBOT_ACTION_MOVE_LEFT_TURN;
+}
 
 
 void process_robot_state() {
@@ -130,18 +177,36 @@ void process_robot_state() {
         right_gain = ROBOT_SPEED_SLOW;
       } else if (measure_mm < MAX_DISTANCE_AVOID) {
         robot_stop();
-        next_action = ROBOT_ACTION_MOVE_RIGHT_TURN;
+        next_action = ROBOT_ACTION_MOVE_BACKWARD;
         return;
       }
 
-    } else if (robot_action == ROBOT_ACTION_MOVE_RIGHT_TURN) {
+    } else if (robot_action == ROBOT_ACTION_MOVE_BACKWARD) {
       if (measure_mm > MAX_DISTANCE_CLEAR) {
-        robot_stop();
-        next_action = ROBOT_ACTION_MOVE_FORWARD;
-      } else {
-        left_gain = ROBOT_SPEED_HIGH;
-        right_gain = -ROBOT_SPEED_SLOW;
+        next_action = get_turn_direction();
       }
+      left_gain = -ROBOT_SPEED_SLOW;
+      right_gain = -ROBOT_SPEED_SLOW;
+
+    } else if (robot_action == ROBOT_ACTION_MOVE_RIGHT_TURN) {
+      if (measure_mm > MAX_DISTANCE_TURNS) {
+        if (follow_right_clear()) {
+          robot_stop();
+          next_action = ROBOT_ACTION_MOVE_FORWARD;
+        }
+      }
+      left_gain = ROBOT_SPEED_HIGH;
+      right_gain = -ROBOT_SPEED_SLOW;
+
+    } else if (robot_action == ROBOT_ACTION_MOVE_LEFT_TURN){
+      if (measure_mm > MAX_DISTANCE_TURNS) {
+        if (follow_left_clear()) {
+          robot_stop();
+          next_action = ROBOT_ACTION_MOVE_FORWARD;
+        }
+      }
+      left_gain = -ROBOT_SPEED_SLOW;
+      right_gain = ROBOT_SPEED_HIGH;
     }
 
     if (left_gain || right_gain) {

@@ -4,8 +4,8 @@
 #include <Servo.h>
 
 Servo _head;
-
 int angle_offset = 14;
+
 
 void move_ultrasonic_servo(int _speed, int _limit=180) {
   int i;
@@ -19,6 +19,12 @@ void move_ultrasonic_servo(int _speed, int _limit=180) {
   }
   _head.write(90 - angle_offset);
 }
+
+
+void command_ultrasonic_angle(int _angle) {
+  _head.write(_angle - angle_offset);
+}
+
 
 void setup_servo() {
   _head.attach(ULTRASONIC_SERVO);
