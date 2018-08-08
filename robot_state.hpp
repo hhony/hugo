@@ -74,25 +74,39 @@ void debug_robot_state() {
 }
 
 
+#define MAX_DISTANCE_AWARE  800
+#define MAX_DISTANCE_SLOWS  600
+#define MAX_DISTANCE_AVOID  300
+#define MAX_DISTANCE_CLEAR  400
+
+#define ROBOT_SPEED_FAST    24
+#define ROBOT_SPEED_HIGH    16
+#define ROBOT_SPEED_MID     12
+#define ROBOT_SPEED_SLOW    8
+
+
 void process_robot_state() {
   if (robot_state == ROBOT_STATE_MANUAL_CONTROL) {
     if (left_gain || right_gain) {
       run_PID_controller(left_gain, right_gain);
       next_state = ROBOT_STATE_MANUAL_CONTROL;
     }
+
   } else if (robot_state == ROBOT_STATE_IDLE) {
     if (robot_action == ROBOT_ACTION_START_SEARCH) {
       robot_stop();
-      left_gain = 16;
-      right_gain = 16;
+      left_gain = ROBOT_SPEED_MID;
+      right_gain = ROBOT_SPEED_MID;
       next_action = ROBOT_ACTION_STOP;
       next_state = ROBOT_STATE_SEARCH;
     }
+
   } else if (robot_state == ROBOT_STATE_STOP) {
     if (left_gain || right_gain) {
       robot_stop();
     }
     next_action = ROBOT_ACTION_STOP;
+
   } else if (robot_state == ROBOT_STATE_SEARCH) {
     if (robot_action == ROBOT_ACTION_STOP_SEARCH) {
       robot_stop();
@@ -102,32 +116,34 @@ void process_robot_state() {
       next_action = ROBOT_ACTION_MOVE_FORWARD;
     } else if (robot_action == ROBOT_ACTION_MOVE_FORWARD) {
       if (left_gain == 0 || right_gain == 0) {
-        left_gain = 16;
-        right_gain = 16;
+        left_gain = ROBOT_SPEED_HIGH;
+        right_gain = ROBOT_SPEED_HIGH;
       }
-      if (measure_mm > 600) {
-        left_gain = 24;
-        right_gain = 24;
-      } else if (measure_mm > 400 && measure_mm < 600) {
-        left_gain = 12;
-        right_gain = 12;
-      } else if (measure_mm > 200 && measure_mm < 400) {
-        left_gain = 8;
-        right_gain = 8;
-      } else if (measure_mm < 200) {
+      if (measure_mm > MAX_DISTANCE_AWARE) {
+        left_gain = ROBOT_SPEED_FAST;
+        right_gain = ROBOT_SPEED_FAST;
+      } else if (measure_mm > MAX_DISTANCE_SLOWS && measure_mm < MAX_DISTANCE_AWARE) {
+        left_gain = ROBOT_SPEED_MID;
+        right_gain = ROBOT_SPEED_MID;
+      } else if (measure_mm > MAX_DISTANCE_AVOID && measure_mm < MAX_DISTANCE_SLOWS) {
+        left_gain = ROBOT_SPEED_SLOW;
+        right_gain = ROBOT_SPEED_SLOW;
+      } else if (measure_mm < MAX_DISTANCE_AVOID) {
         robot_stop();
         next_action = ROBOT_ACTION_MOVE_RIGHT_TURN;
         return;
       }
+
     } else if (robot_action == ROBOT_ACTION_MOVE_RIGHT_TURN) {
-      if (measure_mm > 300) {
+      if (measure_mm > MAX_DISTANCE_CLEAR) {
         robot_stop();
         next_action = ROBOT_ACTION_MOVE_FORWARD;
       } else {
-        left_gain = 16;
-        right_gain = -8;
+        left_gain = ROBOT_SPEED_HIGH;
+        right_gain = -ROBOT_SPEED_SLOW;
       }
     }
+
     if (left_gain || right_gain) {
       run_PID_controller(left_gain, right_gain);
       next_state = ROBOT_STATE_SEARCH;
