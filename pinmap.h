@@ -28,6 +28,4 @@ static void setup_pinmodes() {
   pinMode(HALL_LEFT_REF, INPUT);
   pinMode(HALL_RIGHT_INT, INPUT);
   pinMode(HALL_RIGHT_REF, INPUT);
-  pinMode(ULTRASONIC_TRIG, OUTPUT);
-  pinMode(ULTRASONIC_ECHO, INPUT);
 }

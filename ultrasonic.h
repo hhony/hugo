@@ -1,18 +1,18 @@
 #pragma once
 
-#include "pinmap.h"
+#include "HC_SR04.h"
 
+static HC_SR04 us_sensor(ULTRASONIC_TRIG, ULTRASONIC_ECHO);
 static int measure_mm = 0;
 
-#define ULTRASONIC_MEASURE_US 5
+void setup_ultrasonic() {
+  us_sensor.begin();
+  us_sensor.start();
+}
 
 static void ultrasonic_measure() {
-  long _distance_mm = 0;
-  digitalWrite(ULTRASONIC_TRIG, LOW);
-  delayMicroseconds(ULTRASONIC_MEASURE_US);
-  digitalWrite(ULTRASONIC_TRIG, HIGH);
-  delayMicroseconds(ULTRASONIC_MEASURE_US);
-  _distance_mm = pulseIn(ULTRASONIC_ECHO, HIGH) * 0.1657; // distance in mm
-  digitalWrite(ULTRASONIC_TRIG, LOW);
-  measure_mm = (int)_distance_mm;
+  if (us_sensor.is_finished()) {
+    measure_mm = us_sensor.get_distance();
+    us_sensor.start();
+  }
 }
