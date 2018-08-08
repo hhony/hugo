@@ -33,6 +33,8 @@ enum control_signal_t {
   MOVE_STOP_PID,  // kill pid
   MOVE_INCREASE_SPEED, // increase pid speed
   MOVE_DECREASE_SPEED, // decrease pid speed
+  ENTER_AUTONOMOUS_MODE,  // start robot autonomy
+  EXIT_AUTONOMOUS_MODE,   // suspends robot autonomy
   IR_UNDEFINED
 };
 
@@ -88,7 +90,13 @@ void update_IR_status() {
         break;
 
       case IR_CMD_ONE:
+        _ctrl_sig = ENTER_AUTONOMOUS_MODE;
+        break;
+
       case IR_CMD_TWO:
+        _ctrl_sig = EXIT_AUTONOMOUS_MODE;
+        break;
+
       case IR_CMD_THREE:
       case IR_CMD_FOUR:
       case IR_CMD_FIVE:
@@ -118,24 +126,30 @@ void apply_IR_commands() {
       left_gain = LINEAR_SPEED;
       right_gain = LINEAR_SPEED;
       break;
+
     case MOVE_LEFT:
       left_gain = -PIVOT_SPEED;
       right_gain = ARC_SPEED;
       break;
+
     case MOVE_RIGHT:
       left_gain = ARC_SPEED;
       right_gain = -PIVOT_SPEED;
       break;
+
     case MOVE_BACK:
       left_gain = -LINEAR_SPEED;
       right_gain = -LINEAR_SPEED;
       break;
+
     case MOVE_STOP_PID:
       robot_stop();
       break;
+
     case MOVE_SERVO:
       move_ultrasonic_servo(3);
       break;
+
     case MOVE_INCREASE_SPEED:
       switch (robot_direction) {
         case ROBOT_FORWARD:
@@ -163,6 +177,7 @@ void apply_IR_commands() {
           break;
       }
       break;
+
     case MOVE_DECREASE_SPEED:
       switch (robot_direction) {
         case ROBOT_FORWARD:
@@ -190,6 +205,17 @@ void apply_IR_commands() {
           break;
       }
       break;
+
+    case ENTER_AUTONOMOUS_MODE:
+      robot_state = ROBOT_STATE_IDLE;
+      robot_action = ROBOT_ACTION_START_SEARCH;
+      break;
+
+    case EXIT_AUTONOMOUS_MODE:
+      robot_action = ROBOT_ACTION_STOP_SEARCH;
+      robot_state = ROBOT_STATE_MANUAL_CONTROL;
+      break;
+
   }
   _ctrl_sig = IR_UNDEFINED;
 }

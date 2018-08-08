@@ -14,5 +14,6 @@ static void ultrasonic_measure() {
   if (us_sensor.is_finished()) {
     measure_mm = us_sensor.get_distance();
     us_sensor.start();
+    //Serial.println(measure_mm);
   }
 }

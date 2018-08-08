@@ -1,5 +1,5 @@
 #include "sensors_ir_control.hpp"
-#include "robot_state.hpp"
+#include "robot_control.h"
 
 
 void setup() {
@@ -16,7 +16,5 @@ void loop() {
   ultrasonic_measure();
   update_IR_status();
   apply_IR_commands();
-  if (left_gain || right_gain) {
-    run_PID_controller(left_gain, right_gain);
-  }
+  process_robot_state();
 }

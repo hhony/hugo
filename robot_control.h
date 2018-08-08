@@ -7,3 +7,5 @@ static int right_gain = 0;
 
 void robot_stop(void);
 void robot_move(int left_gain, int right_gain);
+
+#include "robot_state.hpp"
