@@ -1,6 +1,6 @@
 #pragma once
 
-#include "HC_SR04.h"
+#include "sensors_HC_SR04.h"
 
 static HC_SR04 us_sensor(ULTRASONIC_TRIG, ULTRASONIC_ECHO);
 static int measure_mm = 0;

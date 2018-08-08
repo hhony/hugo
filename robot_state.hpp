@@ -1,5 +1,5 @@
 #include "pid_controller.hpp"
-#include "ultrasonic.h"
+#include "sensors_ultrasonic.hpp"
 
 enum robot_state_t {
   ROBOT_STATE_IDLE,

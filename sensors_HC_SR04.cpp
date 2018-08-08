@@ -1,5 +1,5 @@
-#include "PinChangeInt.h"
-#include "HC_SR04.h"
+#include "libPinChangeInt.h"
+#include "sensors_HC_SR04.h"
 
 
 #define ULTRASONIC_MEASURE_US 10
