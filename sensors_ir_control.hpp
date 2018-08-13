@@ -146,7 +146,9 @@ void apply_IR_commands() {
       break;
 
     case MOVE_SERVO:
-      move_ultrasonic_servo(3);
+      if (robot_state == ROBOT_STATE_MANUAL_CONTROL) {
+        move_ultrasonic_servo(3);
+      }
       break;
 
     case MOVE_INCREASE_SPEED:
