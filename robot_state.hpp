@@ -158,14 +158,16 @@ void process_robot_state() {
     if (robot_action == ROBOT_ACTION_STOP_SEARCH) {
       robot_stop();
       next_state = ROBOT_STATE_MANUAL_CONTROL;
-      return;
+
     } else if (robot_action == ROBOT_ACTION_STOP) {
       next_action = ROBOT_ACTION_MOVE_FORWARD;
+
     } else if (robot_action == ROBOT_ACTION_MOVE_FORWARD) {
       if (left_gain == 0 || right_gain == 0) {
         left_gain = ROBOT_SPEED_HIGH;
         right_gain = ROBOT_SPEED_HIGH;
       }
+
       if (measure_mm > MAX_DISTANCE_AWARE) {
         left_gain = ROBOT_SPEED_FAST;
         right_gain = ROBOT_SPEED_FAST;
