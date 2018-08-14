@@ -94,7 +94,7 @@ void debug_robot_state() {
 int us_adjust_angle = 90;
 int us_adjust_count = 0;
 int us_adjust_wait = 1000;
-int us_adjust_tick = 8;
+int us_adjust_tick = 12;
 int us_last_direction = 0;
 
 bool follow_right_clear() {
