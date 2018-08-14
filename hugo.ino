@@ -1,10 +1,8 @@
 #include "sensors_ir_control.hpp"
-#include "robot_control.h"
-
 
 void setup() {
   setup_pinmodes();
-  setup_PID();
+  PIDController::get().setup();
   setup_ir_control();
   setup_servo();
   setup_ultrasonic();

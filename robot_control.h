@@ -1,11 +1,19 @@
 #pragma once
 
-static int left_gain = 0;
-static int right_gain = 0;
+#include "pid_controller.h"
 
-#include "pid_controller.hpp"
+static void robot_stop(void) {
+  PIDController::get().stop();
+}
 
-void robot_stop(void);
-void robot_move(int left_gain, int right_gain);
+static void robot_move() {
+  PIDController::get().run();
+}
 
-#include "robot_state.hpp"
+static void robot_set_gains(int left, int right) {
+  PIDController::get().set_gains(left, right);
+}
+
+static void robot_get_gains(int *left, int *right) {
+  PIDController::get().get_gains(left, right);
+}

@@ -1,7 +1,11 @@
 #pragma once
 
+#include "robot_control.h"
 #include "sensors_ultrasonic.hpp"
 #include "servo_control.hpp"
+
+static int left_gain = 0, right_gain = 0;
+
 
 enum robot_state_t {
   ROBOT_STATE_IDLE,
@@ -66,9 +70,9 @@ void debug_robot_state() {
     Serial.print(", ");
     Serial.print(right_gain);
     Serial.print(" output: ");
-    Serial.print(output_left);
+    Serial.print(PIDController::get().get_output_left());
     Serial.print(", ");
-    Serial.print(output_right);
+    Serial.print(PIDController::get().get_output_right());
     Serial.print(" mm: ");
     Serial.println(measure_mm);
   }
@@ -134,10 +138,13 @@ robot_action_t get_turn_direction() {
 
 void process_robot_state() {
   if (robot_state == ROBOT_STATE_MANUAL_CONTROL) {
+    robot_get_gains(&left_gain, &right_gain);
     if (left_gain || right_gain) {
-      run_PID_controller(left_gain, right_gain);
-      next_state = ROBOT_STATE_MANUAL_CONTROL;
+      robot_move();
+    } else {
+      robot_stop();
     }
+    next_state = ROBOT_STATE_MANUAL_CONTROL;
 
   } else if (robot_state == ROBOT_STATE_IDLE) {
     if (robot_action == ROBOT_ACTION_START_SEARCH) {
@@ -212,7 +219,8 @@ void process_robot_state() {
     }
 
     if (left_gain || right_gain) {
-      run_PID_controller(left_gain, right_gain);
+      robot_set_gains(left_gain, right_gain);
+      robot_move();
       next_state = ROBOT_STATE_SEARCH;
     }
   }

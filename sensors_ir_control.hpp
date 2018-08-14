@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pinmap.h"
-#include "robot_control.h"
+#include "robot_state.hpp"
 #include "libIRremote.h"
 
 #define IR_CMD_UP_ARROW     0x00FF18E7  // IR controller ( ▲ ) button
@@ -124,24 +124,30 @@ void apply_IR_commands() {
     case MOVE_FWD:
       left_gain = LINEAR_SPEED;
       right_gain = LINEAR_SPEED;
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case MOVE_LEFT:
       left_gain = -PIVOT_SPEED;
       right_gain = ARC_SPEED;
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case MOVE_RIGHT:
       left_gain = ARC_SPEED;
       right_gain = -PIVOT_SPEED;
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case MOVE_BACK:
       left_gain = -LINEAR_SPEED;
       right_gain = -LINEAR_SPEED;
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case MOVE_STOP_PID:
+      left_gain = 0; right_gain = 0;
+      robot_set_gains(left_gain, right_gain);
       robot_stop();
       break;
 
@@ -174,9 +180,11 @@ void apply_IR_commands() {
           right_gain -= PIVOT_SPEED;
           break;
         case ROBOT_STOP:
+          left_gain = 0; right_gain = 0;
           robot_stop();
           break;
       }
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case MOVE_DECREASE_SPEED:
@@ -202,9 +210,11 @@ void apply_IR_commands() {
           right_gain += PIVOT_SPEED;
           break;
         case ROBOT_STOP:
+          left_gain = 0; right_gain = 0;
           robot_stop();
           break;
       }
+      robot_set_gains(left_gain, right_gain);
       break;
 
     case ENTER_AUTONOMOUS_MODE:

@@ -1,4 +1,5 @@
 #pragma once
+#include <Arduino.h>
 
 // L298N Dual H-Bridge Motor Controller Pins
 #define IN1     8   // K1, K2 motor direction
