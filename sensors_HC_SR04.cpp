@@ -32,7 +32,24 @@ void HC_SR04::start(void) {
 
 
 unsigned int HC_SR04::get_distance(void) {
-  return (int) ((_ended_us - _begin_us) * 0.1657);
+  return (unsigned int) _kalman_xhat;
+}
+
+
+unsigned int HC_SR04::time_to_mm(void) {
+  return (unsigned int) ((_ended_us - _begin_us) * 0.1657);
+}
+
+
+unsigned int HC_SR04::filter_distance(void) {
+  uint32_t _mm_est = 0;
+  if (_ended_us > 0 && _begin_us > 0) {
+    _mm_est = time_to_mm();
+    _kalman_proc_err = _kalman_err + _kalman_q_process_variance;
+    _kalman_gain = _kalman_proc_err / (_kalman_proc_err + _kalman_r_measure_variance);
+    _kalman_err  = _kalman_proc_err * (1 - _kalman_gain);
+    _kalman_xhat = _kalman_xhat + _kalman_gain * (_mm_est - _kalman_xhat);
+  }
 }
 
 
@@ -47,6 +64,7 @@ void HC_SR04::_echo_ISR(void) {
     case LOW:
       if (_sensor->_is_triggered) {
         _sensor->_ended_us = micros();
+        _sensor->filter_distance();
         _sensor->_is_triggered = false;
         _sensor->_is_finished = true;
       }
